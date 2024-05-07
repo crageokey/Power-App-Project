@@ -1,0 +1,1025 @@
+2. Credit Appraisal upload for review.
+a. When a new response is submitted
+{
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"form_id": "-5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUQVZPM0NBWUJQN0taRVg4TVVHTFVPWlJXOS4u"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+"connection": "shared_microsoftforms",
+"operationId": "CreateFormWebhook"
+}
+},
+"splitOn": "@triggerOutputs()?['body/value']",
+"metadata": {
+"operationMetadataId": "bbd5d413-242a-4b1d-a4a6-d80acf0b2a2a"
+}
+}
+b. Get response details
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"form_id": "-5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUQVZPM0NBWUJQN0taRVg4TVVHTFVPWlJXOS4u",
+"response_id": "@triggerOutputs()?['body/resourceData/responseId']"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+"connection": "shared_microsoftforms",
+"operationId": "GetFormResponseById"
+}
+},
+"runAfter": {},
+"metadata": {
+"operationMetadataId": "c0874bcb-48f4-4acc-b453-9b978d782133"
+}
+}
+c. Parse JSON
+{
+"type": "ParseJson",
+"inputs": {
+"content":
+"@outputs('Get_response_details')?['body/r04419352877c494bb5a9d0ba03798520']",
+"schema": {
+"type": "array",
+"items": {
+"type": "object",
+"properties": {
+"name": {
+"type": "string"
+},
+"link": {
+"type": "string"
+},
+"id": {
+"type": "string"
+},
+"type": {},
+"size": {
+"type": "integer"
+},
+"referenceId": {
+"type": "string"
+},
+"driveId": {
+"type": "string"
+},
+"status": {
+"type": "integer"
+},
+"uploadSessionUrl": {}
+},
+"required": [
+"name",
+"link",
+"id",
+"type",
+"size",
+"referenceId",
+"driveId",
+"status",
+"uploadSessionUrl"
+]
+}
+}
+},
+"runAfter": {
+"Get_response_details": [
+"Succeeded"
+d. Get file content
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"id": "@items('Apply_to_each')['id']",
+"inferContentType": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness",
+"connection": "shared_onedriveforbusiness",
+"operationId": "GetFileContent"
+}
+},
+"metadata": {
+"operationMetadataId": "18fb59b7-a6d3-4da7-9e3a-bf056f949c29"
+}
+}
+Compose
+{
+"type": "Compose",
+"inputs": "@items('Apply_to_each')['name']",
+"runAfter": {
+"Get_file_content": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "7d7b0589-a262-42d8-8b38-c66c419ecf9e"
+}
+}
+e. Send an email for review
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To":
+"@outputs('Get_response_details')?['body/rcaae9ea682de4c618999d8658394fbe6']",
+"emailMessage/Subject": "@{split(outputs('Compose'),
+'_')[0]}_@{split(outputs('Compose'), '_')[1]}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear
+Team,<br>\n<br>\nPlease find attached the </span><span style=\"font-family:
+effra\">@{split(outputs('Compose'), '_')[0]}</span><span style=\"font-family:
+effra\"> for </span><span style=\"font-family: effra\">@{split(outputs('Compose'),
+'_')[1]}</span><span style=\"font-family: effra\">, kindly review and execute
+accordingly.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNDZFMk9UOUpSUDYxM1JSQ0I5TkpYTjU5WC4u\"><span style=\"font-family: effra\">Upload
+signed CAM</span></a><span style=\"font-family: effra\"><br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUOEdDSVdORFpQMDBONjlMOFpDNUowM0tNRy4u\"><span style=\"font-family: effra\">Upload
+reviewed CAM </span></a><span style=\"font-family: effra\">&nbsp;<br>\n<br>\nThank
+you.</span></p>",
+"emailMessage/From": "@outputs('Get_response_details')?['body/responder']",
+"emailMessage/Attachments": [
+{
+"Name": "@{split(outputs('Compose'), '_')[0]}_@{split(outputs('Compose'),
+'_')[1]}_@{split(outputs('Compose'), '_')[2]}.pdf",
+"ContentBytes": "@body('Get_file_content')"
+}
+],
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365_1",
+"operationId": "SendEmailV2"
+}
+},
+"runAfter": {
+"Compose": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "2aad547f-6496-4da4-bf52-2b5e8ff4d5b9"
+}
+}
+3. Final Document uploaded before disbursement
+a. When a new response is submitted
+{
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"form_id": "-5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUQ1QwRkVDSDZZMzkxV00wN0YzV09CVFMzWC4u"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+"connection": "shared_microsoftforms",
+"operationId": "CreateFormWebhook"
+}
+},
+"splitOn": "@triggerOutputs()?['body/value']",
+"metadata": {
+"operationMetadataId": "27095153-b4bb-4732-80df-dee6be42e40a"
+}
+b. Get Response Details
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"form_id": "-5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUQ1QwRkVDSDZZMzkxV00wN0YzV09CVFMzWC4u",
+"response_id": "@triggerOutputs()?['body/resourceData/responseId']"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+"connection": "shared_microsoftforms",
+"operationId": "GetFormResponseById"
+}
+},
+"runAfter": {},
+"metadata": {
+"operationMetadataId": "34da1685-7f10-49c2-9e2e-1329b814c527"
+}
+}
+c. Parse JSON
+{
+"type": "ParseJson",
+"inputs": {
+"content": "@outputs('Get_response_details')?['body/rbd25722bfff64d3497f141531261e515']",
+"schema": {
+"type": "array",
+"items": {
+"type": "object",
+"properties": {
+"name": {
+"type": "string"
+},
+"link": {
+"type": "string"
+},
+"id": {
+"type": "string"
+},
+"type": {},
+"size": {
+"type": "integer"
+},
+"referenceId": {
+"type": "string"
+},
+"driveId": {
+"type": "string"
+},
+"status": {
+"type": "integer"
+},
+"uploadSessionUrl": {}
+},
+"required": [
+"name",
+"link",
+"id",
+"type",
+"size",
+"referenceId",
+"driveId",
+"status",
+"uploadSessionUrl"
+]
+}
+}
+},
+"runAfter": {
+"Get_response_details": [
+"Succeeded"
+d. Get file content
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"id": "@items('Apply_to_each')['id']",
+"inferContentType": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness",
+"connection": "shared_onedriveforbusiness",
+"operationId": "GetFileContent"
+}
+},
+"metadata": {
+"operationMetadataId": "70d5302a-8a89-40a8-b9c0-1a97e8b1c6de"
+}
+}
+e. Compose
+{
+"type": "Compose",
+"inputs": "@items('Apply_to_each')['name']",
+"runAfter": {
+"Get_file_content": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "d1302db4-47d6-404a-b649-8c9970768cfc"
+}
+}
+f. Start and Wait for an Approval
+{
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponse",
+"WebhookApprovalCreationInput/responseOptions": [
+"Done"
+],
+"WebhookApprovalCreationInput/title": "Executed Form302:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear team, kindly reassign this task to a branch ops
+officer.\n\nPlease find attached the link to the One drive containing all the documents, proceed to upload on
+Instafin, and confirm that all documents have been uploaded.\n\nClick \"Done\" to proceed.\n\nThank you.",
+"WebhookApprovalCreationInput/itemLink": "https://sciartfinancemy.
+sharepoint.com/:f:/p/operations/EvjDhavugzRIok9hA3R9xZQBUlxhXeldUPYR0WsszAwMHA?e=RhAn2X",
+"WebhookApprovalCreationInput/itemLinkDescription": "Link to One Drive",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"runAfter": {
+"Compose": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "9e213cb8-9ae9-4532-9d94-38ffbcbb2a27"
+}
+}
+g. Send an email
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To":
+"fincon@sciartfinance.com;@{outputs('Get_response_details')?['body/r44e458075a6344078961d0b9f02970
+1b']}",
+"emailMessage/Subject": "Executed Form 302:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nPlease find attached
+the executed Form302 for </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> for your use.<br>\n<br>\nThank you.</span></p>",
+"emailMessage/From": "@outputs('Get_response_details')?['body/responder']",
+"emailMessage/Attachments": [
+{
+"Name": "@{split(outputs('Compose'), '_')[0]}_@{split(outputs('Compose'),
+'_')[1]}_@{split(outputs('Compose'), '_')[2]}.pdf",
+"ContentBytes": "@body('Get_file_content')"
+}
+],
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365_1",
+"operationId": "SendEmailV2"
+}
+},
+"runAfter": {
+"Compose": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "5e31954a-4c78-47e4-b11c-38b3a5984645"
+}
+}
+h. Post message in chat or channel
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"poster": "Flow bot",
+"location": "Group chat",
+"body/recipient": "19:f9c07b9e0a45416082beb024d65eb0b8@thread.v2",
+"body/messageBody": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe Form 302 for
+</span><span style=\"font-family: effra\">@{split(outputs('Compose'), '_')[1]}</span><span style=\"fontfamily:
+effra\"> has been executed by CIRCA. Disbursement would be requested soon.&nbsp;</span></p>"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+"connection": "shared_teams",
+"operationId": "PostMessageToConversation"
+}
+},
+"runAfter": {
+"Compose": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "d24c0b73-c158-4393-9f37-eb963139302b"
+}
+}
+i. Condition
+{
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval_2')?['body/outcome']",
+"Done"
+]
+},
+"actions": {
+"Start_and_wait_for_an_approval": {
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponse",
+"WebhookApprovalCreationInput/responseOptions": [
+"Preapproved",
+"CEO",
+"MCC",
+"BCC"
+],
+"WebhookApprovalCreationInput/title": "Instafin Loan Account Approval:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear Team,\nKindly confirm that all documents have been
+uploaded to Instafin, approve the account created and click whatever party voting applies to. \nIf amount is
+below N10,000,000, kindly click \"CEO\".\nIf more than N10,000,000 but less than N15,000,000, kindly click
+\"MCC\"\nIf more than N15,000,000, Kindly click BCC.\nThank you.",
+"WebhookApprovalCreationInput/requestor": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"metadata": {
+"operationMetadataId": "a39bb966-9b52-4f23-9bda-67187f773fc0"
+}
+},
+"Condition_6": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval')?['body/outcome']",
+"CEO"
+]
+},
+"actions": {
+"Start_and_wait_for_an_approval_7": {
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponse",
+"WebhookApprovalCreationInput/responseOptions": [
+"Voted"
+],
+"WebhookApprovalCreationInput/title": "CEO Instafin Vote:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo": "Akinbayo@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear Team,\nKindly vote for the disbursement to
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']} on Instafin.\nAmount
+is below 10,000,000 Naira.\nClick \"Voted\" to confirm this has been done. \n\n",
+"WebhookApprovalCreationInput/requestor": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"metadata": {
+"operationMetadataId": "0f36d855-eeb6-4c67-9c4c-ebe9da88adc9"
+}
+},
+"Condition_7": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval_7')?['body/outcome']",
+"Voted"
+]
+},
+"actions": {
+"Send_an_email_(V2)": {
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To": "Fincon@sciartfinance.com",
+"emailMessage/Subject": "Instafin Ticket Upload:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe disbursement
+to </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> has been approved on Instafin. Kindly proceed to download and upload the
+ticket from Instafin.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNjU4UTRZMkE5TkIwQzhGRzkyWEo2TlMxRi4u\"><span style=\"font-family: effra\">Upload ticket
+here</span></a><span style=\"font-family: effra\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365",
+"operationId": "SendEmailV2"
+}
+},
+"metadata": {
+"operationMetadataId": "d28aa91d-0aca-4d85-938e-0b8edbf9cb8c"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval_7": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "067c9cff-48d3-456d-937d-fa95b8919a04"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "332ad55b-ac45-40d5-8fe2-b410809b3966"
+}
+},
+"Condition_8": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval')?['body/outcome']",
+"MCC"
+]
+},
+"actions": {
+"Start_and_wait_for_an_approval_8": {
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponseAwaitAll",
+"WebhookApprovalCreationInput/responseOptions": [
+"Voted"
+],
+"WebhookApprovalCreationInput/title": "MCC Instafin Vote:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo":
+"abiodun@sciartfinance.com;Akinbayo@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear Team,\nKindly vote for disbursement to
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']} on Instafin.\nAmount
+is below or equal to N15,000,000.\nClick \"Voted\" to confirm this has been done. \n\n",
+"WebhookApprovalCreationInput/requestor": "Tosin@sciartfinance.com;",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"metadata": {
+"operationMetadataId": "0f36d855-eeb6-4c67-9c4c-ebe9da88adc9"
+}
+},
+"Condition_9": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval_8')?['body/outcome']",
+"Voted"
+]
+},
+"actions": {
+"Send_an_email_(V2)_3": {
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To": "Fincon@sciartfinance.com",
+"emailMessage/Subject": "Instafin Ticket Upload:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe disbursement
+to </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> has been approved on Instafin. Kindly proceed to download and upload the
+ticket from Instafin.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNjU4UTRZMkE5TkIwQzhGRzkyWEo2TlMxRi4u\"><span style=\"font-family: effra\">Upload ticket
+here</span></a><span style=\"font-family: effra\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365",
+"operationId": "SendEmailV2"
+}
+},
+"metadata": {
+"operationMetadataId": "7df9252b-5749-4bc4-8b8f-46bc88065323"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval_8": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "067c9cff-48d3-456d-937d-fa95b8919a04"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "332ad55b-ac45-40d5-8fe2-b410809b3966"
+}
+},
+"Condition_10": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval')?['body/outcome']",
+"BCC"
+]
+},
+"actions": {
+"Start_and_wait_for_an_approval_9": {
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponse",
+"WebhookApprovalCreationInput/responseOptions": [
+"Voted"
+],
+"WebhookApprovalCreationInput/title": "BCC Instafin Vote:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo": "Akinbayo@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear Team,\nKindly vote for disbursement for the Loan Account
+created for @{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']} on
+Instafin. \n\nClick \"Voted\" to confirm that all parties involved have voted.\n\n",
+"WebhookApprovalCreationInput/requestor": "Tosin@sciartfinance.com;",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"metadata": {
+"operationMetadataId": "0f36d855-eeb6-4c67-9c4c-ebe9da88adc9"
+}
+},
+"Condition_11": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval_9')?['body/outcome']",
+"Voted"
+]
+},
+"actions": {
+"Send_an_email_(V2)_4": {
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To": "Fincon@sciartfinance.com",
+"emailMessage/Subject": "Instafin Ticket Upload:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe disbursement
+to </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> has been approved on Instafin. Kindly proceed to download and upload the
+ticket from Instafin.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNjU4UTRZMkE5TkIwQzhGRzkyWEo2TlMxRi4u\"><span style=\"font-family: effra\">Upload ticket
+here</span></a><span style=\"font-family: effra\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365",
+"operationId": "SendEmailV2"
+}
+},
+"metadata": {
+"operationMetadataId": "1af90867-9e25-475d-bbbc-e351c87f001c"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval_9": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "067c9cff-48d3-456d-937d-fa95b8919a04"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "332ad55b-ac45-40d5-8fe2-b410809b3966"
+}
+},
+"Condition_2": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval')?['body/outcome']",
+"Preapproved"
+]
+},
+"actions": {
+"Send_an_email_(V2)_5": {
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To": "Fincon@sciartfinance.com",
+"emailMessage/Subject": "Instafin Ticket Upload:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe disbursement
+to </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> has been approved on Instafin. Kindly proceed to download and upload the
+ticket from Instafin.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNjU4UTRZMkE5TkIwQzhGRzkyWEo2TlMxRi4u\"><span style=\"font-family: effra\">Upload ticket
+here</span></a><span style=\"font-family: effra\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365",
+"operationId": "SendEmailV2"
+}
+},
+"metadata": {
+"operationMetadataId": "d28aa91d-0aca-4d85-938e-0b8edbf9cb8c"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "2f23ef0d-161c-4998-b8a3-f7ac0364feaa"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval_2": [
+"Succeeded"
+i. Start and wait for an approval
+{
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponse",
+"WebhookApprovalCreationInput/responseOptions": [
+"Preapproved",
+"CEO",
+"MCC",
+"BCC"
+],
+"WebhookApprovalCreationInput/title": "Instafin Loan Account Approval:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear Team,\nKindly confirm that all documents have been
+uploaded to Instafin, approve the account created and click whatever party voting applies to. \nIf amount is
+below N10,000,000, kindly click \"CEO\".\nIf more than N10,000,000 but less than N15,000,000, kindly click
+\"MCC\"\nIf more than N15,000,000, Kindly click BCC.\nThank you.",
+"WebhookApprovalCreationInput/requestor": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"metadata": {
+"operationMetadataId": "a39bb966-9b52-4f23-9bda-67187f773fc0"
+}
+}
+j. Condition
+{
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval')?['body/outcome']",
+"CEO"
+]
+},
+"actions": {
+"Start_and_wait_for_an_approval_7": {
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponse",
+"WebhookApprovalCreationInput/responseOptions": [
+"Voted"
+],
+"WebhookApprovalCreationInput/title": "CEO Instafin Vote:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo": "Akinbayo@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear Team,\nKindly vote for the disbursement to
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']} on Instafin.\nAmount
+is below 10,000,000 Naira.\nClick \"Voted\" to confirm this has been done. \n\n",
+"WebhookApprovalCreationInput/requestor": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"metadata": {
+"operationMetadataId": "0f36d855-eeb6-4c67-9c4c-ebe9da88adc9"
+}
+},
+"Condition_7": {
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval_7')?['body/outcome']",
+"Voted"
+]
+},
+"actions": {
+"Send_an_email_(V2)": {
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To": "Fincon@sciartfinance.com",
+"emailMessage/Subject": "Instafin Ticket Upload:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe disbursement
+to </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> has been approved on Instafin. Kindly proceed to download and upload the
+ticket from Instafin.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNjU4UTRZMkE5TkIwQzhGRzkyWEo2TlMxRi4u\"><span style=\"font-family: effra\">Upload ticket
+here</span></a><span style=\"font-family: effra\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365",
+"operationId": "SendEmailV2"
+}
+},
+"metadata": {
+"operationMetadataId": "d28aa91d-0aca-4d85-938e-0b8edbf9cb8c"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval_7": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "067c9cff-48d3-456d-937d-fa95b8919a04"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval": [
+"Succeeded"
+k. Start and wait for an approval
+{
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"approvalType": "CustomResponse",
+"WebhookApprovalCreationInput/responseOptions": [
+"Voted"
+],
+"WebhookApprovalCreationInput/title": "CEO Instafin Vote:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"WebhookApprovalCreationInput/assignedTo": "Akinbayo@sciartfinance.com;",
+"WebhookApprovalCreationInput/details": "Dear Team,\nKindly vote for the disbursement to
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']} on Instafin.\nAmount
+is below 10,000,000 Naira.\nClick \"Voted\" to confirm this has been done. \n\n",
+"WebhookApprovalCreationInput/requestor": "abiodun@sciartfinance.com;",
+"WebhookApprovalCreationInput/enableNotifications": true,
+"WebhookApprovalCreationInput/enableReassignment": true
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+"connection": "shared_approvals",
+"operationId": "StartAndWaitForAnApproval"
+}
+},
+"metadata": {
+"operationMetadataId": "0f36d855-eeb6-4c67-9c4c-ebe9da88adc9"
+}
+}
+l. Condition
+{
+"type": "If",
+"expression": {
+"equals": [
+"@outputs('Start_and_wait_for_an_approval_7')?['body/outcome']",
+"Voted"
+]
+},
+"actions": {
+"Send_an_email_(V2)": {
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To": "Fincon@sciartfinance.com",
+"emailMessage/Subject": "Instafin Ticket Upload:
+@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe disbursement
+to </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> has been approved on Instafin. Kindly proceed to download and upload the
+ticket from Instafin.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNjU4UTRZMkE5TkIwQzhGRzkyWEo2TlMxRi4u\"><span style=\"font-family: effra\">Upload ticket
+here</span></a><span style=\"font-family: effra\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365",
+"operationId": "SendEmailV2"
+}
+},
+"metadata": {
+"operationMetadataId": "d28aa91d-0aca-4d85-938e-0b8edbf9cb8c"
+}
+}
+},
+"else": {
+"actions": {}
+},
+"runAfter": {
+"Start_and_wait_for_an_approval_7": [
+"Succeeded"
+m. Send an Email
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To": "Fincon@sciartfinance.com",
+"emailMessage/Subject": "Instafin Ticket Upload: @{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}",
+"emailMessage/Body": "<p><span style=\"font-family: effra\">Dear Team,<br>\n<br>\nThe disbursement
+to </span><span style=\"font-family:
+effra\">@{outputs('Get_response_details')?['body/r83d0542050ba44da8737d03fcd412055']}</span><span
+style=\"font-family: effra\"> has been approved on Instafin. Kindly proceed to download and upload the
+ticket from Instafin.<br>\n<br>\n</span><a
+href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUNjU4UTRZMkE5TkIwQzhGRzkyWEo2TlMxRi4u\"><span style=\"font-family: effra\">Upload ticket
+here</span></a><span style=\"font-family: effra\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365",
+"operationId": "SendEmailV2"
+}
+},
+"metadata": {
+"operationMetadataId": "7df9252b-5749-4bc4-8b8f-46bc88065323"
+}
+}
