@@ -1,0 +1,96 @@
+
+---When a new response is submitted (this is a JSON snippet)---
+{
+"type": "OpenApiConnectionWebhook",
+"inputs": {
+"parameters": {
+"form_id": "-5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUODNBN1pIMDNJQzFXUFJWRDBQUlozNlg4Si4u"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+"connection": "shared_microsoftforms",
+"operationId": "CreateFormWebhook"
+}
+},
+"splitOn": "@triggerOutputs()?['body/value']",
+"metadata": {
+"operationMetadataId": "500f70cf-a2be-4b3e-9f93-de222d31cfa4"
+}
+}
+
+---Get response from Website, digital form or app---
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"form_id": "-5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUODNBN1pIMDNJQzFXUFJWRDBQUlozNlg4Si4u",
+"response_id": "@triggerOutputs()?['body/resourceData/responseId']"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+"connection": "shared_microsoftforms",
+"operationId": "GetFormResponseById"
+}
+},
+"runAfter": {},
+"metadata": {
+"operationMetadataId": "25cbbf65-3c64-4aca-bb51-db47ea9d64c3"
+}
+}
+
+---Assign request and send trigger to a Relationship Manager---
+{
+"type": "OpenApiConnection",
+"inputs": {
+"parameters": {
+"emailMessage/To":
+"@outputs('Get_response_details')?['body/rd90ae5e7adca456387a506d0fc17fda5']",
+"emailMessage/Subject": "Loan Request",
+"emailMessage/Body": "<p><span style=\"font-family: effra; font-size: 10px\">Dear
+team,<br>\n<br>\nKindly process loan for the customer;<br>\nName: </span><span
+style=\"font-family: effra; font-size:
+10px\">@{outputs('Get_response_details')?['body/r702c20b629a14442bd049c1fcd84363a']}<
+/span><span style=\"font-family: effra; font-size: 10px\"><br>\nLoan amount:
+</span><span style=\"font-family: effra; font-size:
+10px\">@{outputs('Get_response_details')?['body/re101dc5fa1df4412a96efcd5971eb082']}<
+/span><span style=\"font-family: effra; font-size: 10px\"><br>\nTenor: </span><span
+style=\"font-family: effra; font-size:
+10px\">@{outputs('Get_response_details')?['body/refa129c1501943438de260b0eab3a559']}<
+/span><span style=\"font-family: effra; font-size: 10px\"><br>\nContact number:
+</span><span style=\"font-family: effra; font-size:
+10px\">@{outputs('Get_response_details')?['body/ree8f31ff4180438da680fb08a4366414']}<
+/span><span style=\"font-family: effra; font-size: 10px\"><br>\nEmail address:
+</span><span style=\"font-family: effra; font-size:
+10px\">@{outputs('Get_response_details')?['body/r1fbd44d484354ab1805ebe4aae95f09d']}<
+/span><span style=\"font-family: effra; font-size: 10px\"><br>\nRate: </span><span
+style=\"font-family: effra; font-size:
+10px\">@{outputs('Get_response_details')?['body/r54c714b019bd4a7e89dd486059928f62']}<
+/span><span style=\"font-family: effra; font-size: 10px\"><br>\nFacility Type:
+</span><span style=\"font-family: effra; font-size:
+10px\">@{outputs('Get_response_details')?['body/rde1fe01f9cee442aba7de05f6eed49f1']}<
+/span><span style=\"font-family: effra; font-size: 10px\"><br>\n<br>\nAssign an RM:
+</span><a href=\"https://forms.office.com/Pages/ResponsePage.aspx?id=-
+5D1Woh8iEKiimat0jhvO0WPz0QesWdEhU6zQh-
+HvWlUQTlYNU4wNVI4NVdQWVNRTkRYS1dGR0FFSi4u\"><span style=\"font-family: effra; fontsize:
+10px\">RM</span></a><span style=\"font-family: effra; font-size:
+10px\"><br>\n<br>\nThank you.</span></p>",
+"emailMessage/From": "Service@***.com",
+"emailMessage/Importance": "Normal"
+},
+"host": {
+"apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+"connection": "shared_office365_1",
+"operationId": "SendEmailV2"
+}
+},
+"runAfter": {
+"Get_response_details": [
+"Succeeded"
+]
+},
+"metadata": {
+"operationMetadataId": "8f19b661-b43a-452f-9a43-3837cbf00efd"
+}
+}
